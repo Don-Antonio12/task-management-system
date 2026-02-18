@@ -16,6 +16,9 @@
         <style>
             body.dashboard-body {
                 background: #f8f9fa;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
             }
             .dashboard-header {
                 color: black;
@@ -28,6 +31,7 @@
             }
             .dashboard-content {
                 padding: 2rem 0;
+                flex: 1;
             }
             .dashboard-card {
                 background: white;
@@ -44,6 +48,75 @@
                 color: #1D809F;
                 margin-top: 0;
                 font-weight: 700;
+            }
+
+            .app-footer {
+                margin-top: auto;
+                background: linear-gradient(135deg, rgb(37, 4, 39) 0%, #764ba2 100%);
+                color: rgba(255, 255, 255, 0.9);
+                padding: 1.5rem 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+            }
+            .app-footer-inner {
+                max-width: 100%;
+                margin: 0 auto;
+                padding: 0 1.5rem;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+            }
+            .app-footer-brand {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+            .app-footer-logo {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                object-fit: cover;
+            }
+            .app-footer-name {
+                font-weight: 700;
+                font-size: 1.1rem;
+                color: #fff;
+            }
+            .app-footer-social {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+            .app-footer-social a {
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: rgba(255, 255, 255, 0.9);
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 50%;
+                text-decoration: none;
+                font-size: 1rem;
+                transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            }
+            .app-footer-social a:hover {
+                background: rgba(255, 255, 255, 0.25);
+                color: #fff;
+                transform: translateY(-2px);
+            }
+            .app-footer-copy {
+                font-size: 0.85rem;
+                opacity: 0.9;
+            }
+            @media (max-width: 768px) {
+                .app-footer-inner {
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 1.25rem;
+                }
             }
         </style>
     </head>
@@ -65,6 +138,27 @@
                 {{ $slot }}
             </div>
         </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="container-fluid px-4 px-lg-5">
+                <div class="app-footer-inner">
+                    <div class="app-footer-brand">
+                        <img src="{{ asset('build/assets/Logo.png') }}" alt="{{ config('app.name', 'TMS') }}" class="app-footer-logo">
+                        <span class="app-footer-name">{{ config('app.name', 'Task Management System') }}</span>
+                    </div>
+                    <div class="app-footer-social">
+                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                    <div class="app-footer-copy">
+                        &copy; {{ date('Y') }} {{ config('app.name', 'TMS') }}. All rights reserved.
+                    </div>
+                </div>
+            </div>
+        </footer>
 
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>

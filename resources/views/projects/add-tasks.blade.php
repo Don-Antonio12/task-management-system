@@ -36,19 +36,6 @@
         .btn-secondary { background: #764ba2; color: white; border: none; }
         .btn-outline-danger { background: transparent; color: #dc3545; border: 1px solid #dc3545; }
         .btn-outline-danger:hover { background: #dc3545; color: white; }
-        .row-small .col-md-6 { margin-bottom: 0.5rem; }
-
-        /* Hide dropdown arrow for Assign To selects */
-        .select-no-arrow {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: none !important;
-        }
-        /* Remove default arrow in IE/Edge (old) */
-        .select-no-arrow::-ms-expand {
-            display: none;
-        }
     </style>
 
     <div class="row mt-4">
@@ -68,8 +55,11 @@
 
             <form action="{{ route('projects.tasks.store', $project) }}" method="POST" id="tasks-form">
                 @csrf
+                <p class="text-muted small mb-3"><i class="fas fa-info-circle"></i> Assignee is set automatically from the developers assigned to this project (by category).</p>
                 <div id="task-rows">
-                    @php $oldTasks = old('tasks', [['title' => '', 'description' => '', 'category' => 'backend', 'status' => 'todo', 'assigned_to' => '', 'deadline' => '']]); @endphp
+                    @php
+                    $oldTasks = old('tasks', [['title' => '', 'description' => '', 'category' => 'backend', 'status' => 'todo']]);
+                    @endphp
                     @foreach($oldTasks as $idx => $t)
                     <div class="task-row" data-index="{{ $idx }}">
                         <div class="task-row-head">
@@ -94,7 +84,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Category <span class="text-danger">*</span></label>
-                                    <select class="form-select task-category" name="tasks[{{ $idx }}][category]" required>
+                                    <select class="form-select" name="tasks[{{ $idx }}][category]" required>
                                         <option value="backend" {{ ($t['category'] ?? '') == 'backend' ? 'selected' : '' }}>Backend</option>
                                         <option value="frontend" {{ ($t['category'] ?? '') == 'frontend' ? 'selected' : '' }}>Frontend</option>
                                         <option value="server" {{ ($t['category'] ?? '') == 'server' ? 'selected' : '' }}>Server</option>
@@ -103,24 +93,6 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>Assign To</label>
-                                    <select class="form-select task-assigned select-no-arrow" data-name="tasks[{{ $idx }}][assigned_to]" disabled>
-                                        <option value="">Unassigned</option>
-                                        @foreach($backendUsers as $u)
-                                        <option value="{{ $u->id }}" data-role="backend" {{ ($t['assigned_to'] ?? '') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
-                                        @endforeach
-                                        @foreach($frontendUsers as $u)
-                                        <option value="{{ $u->id }}" data-role="frontend" {{ ($t['assigned_to'] ?? '') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
-                                        @endforeach
-                                        @foreach($serverUsers as $u)
-                                        <option value="{{ $u->id }}" data-role="server" {{ ($t['assigned_to'] ?? '') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <input type="hidden" class="task-assigned-hidden" name="tasks[{{ $idx }}][assigned_to]" value="{{ $t['assigned_to'] ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
                                     <label>Status</label>
                                     <select class="form-select" name="tasks[{{ $idx }}][status]">
                                         <option value="todo" {{ ($t['status'] ?? 'todo') == 'todo' ? 'selected' : '' }}>To Do</option>
@@ -128,12 +100,6 @@
                                         <option value="in_review" {{ ($t['status'] ?? '') == 'in_review' ? 'selected' : '' }}>In Review</option>
                                         <option value="done" {{ ($t['status'] ?? '') == 'done' ? 'selected' : '' }}>Done</option>
                                     </select>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label>Deadline</label>
-                                    <input type="datetime-local" class="form-control" name="tasks[{{ $idx }}][deadline]" value="{{ $t['deadline'] ?? '' }}">
                                 </div>
                             </div>
                         </div>
@@ -179,7 +145,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>Category <span class="text-danger">*</span></label>
-                        <select class="form-select task-category" name="tasks[__INDEX__][category]" required>
+                        <select class="form-select" name="tasks[__INDEX__][category]" required>
                             <option value="backend">Backend</option>
                             <option value="frontend">Frontend</option>
                             <option value="server">Server</option>
@@ -188,37 +154,13 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Assign To</label>
-                        <select class="form-select task-assigned select-no-arrow" data-name="tasks[__INDEX__][assigned_to]" disabled>
-                            <option value="">Unassigned</option>
-                            @foreach($backendUsers as $u)
-                            <option value="{{ $u->id }}" data-role="backend">{{ $u->name }}</option>
-                            @endforeach
-                            @foreach($frontendUsers as $u)
-                            <option value="{{ $u->id }}" data-role="frontend">{{ $u->name }}</option>
-                            @endforeach
-                            @foreach($serverUsers as $u)
-                            <option value="{{ $u->id }}" data-role="server">{{ $u->name }}</option>
-                            @endforeach
-                        </select>
-                        <input type="hidden" class="task-assigned-hidden" name="tasks[__INDEX__][assigned_to]">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
                         <label>Status</label>
                         <select class="form-select" name="tasks[__INDEX__][status]">
-                            <option value="todo">To Do</option>
+                            <option value="todo" selected>To Do</option>
                             <option value="in_progress">In Progress</option>
                             <option value="in_review">In Review</option>
                             <option value="done">Done</option>
                         </select>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label>Deadline</label>
-                        <input type="datetime-local" class="form-control" name="tasks[__INDEX__][deadline]">
                     </div>
                 </div>
             </div>
@@ -250,103 +192,7 @@
                 row.querySelectorAll('[name^="tasks["]').forEach(function(input) {
                     input.name = input.name.replace(/tasks\[\d+\]/, 'tasks[' + i + ']');
                 });
-
-                // Also update data-name attributes used by disabled selects
-                row.querySelectorAll('[data-name^="tasks["]').forEach(function(el) {
-                    el.setAttribute('data-name', el.getAttribute('data-name').replace(/tasks\[\d+\]/, 'tasks[' + i + ']'));
-                });
             });
-        }
-
-        var developersByCategory = { backend: [], frontend: [], server: [] };
-        var firstAssignSelect = container.querySelector('.task-row .task-assigned');
-        if (firstAssignSelect) {
-            firstAssignSelect.querySelectorAll('option[data-role]').forEach(function(opt) {
-                var role = opt.getAttribute('data-role');
-                if (developersByCategory[role]) {
-                    developersByCategory[role].push({ value: opt.value, text: opt.textContent });
-                }
-            });
-        }
-
-        function getAssignmentCountsForCategory(cat, excludeRow) {
-            var counts = {};
-            var list = developersByCategory[cat] || [];
-            list.forEach(function (dev) {
-                counts[dev.value] = 0;
-            });
-
-            container.querySelectorAll('.task-row').forEach(function (row) {
-                if (row === excludeRow) return;
-                var cSel = row.querySelector('.task-category');
-                var aSel = row.querySelector('.task-assigned');
-                if (!cSel || !aSel) return;
-                if (cSel.value !== cat) return;
-                var val = aSel.value;
-                if (val && counts.hasOwnProperty(val)) {
-                    counts[val] += 1;
-                }
-            });
-
-            return counts;
-        }
-
-        function autoAssignDeveloper(selectEl, cat) {
-            var list = developersByCategory[cat] || [];
-            if (!list.length) return;
-
-            var counts = getAssignmentCountsForCategory(cat, selectEl.closest('.task-row'));
-
-            var bestId = null;
-            var bestCount = Infinity;
-
-            list.forEach(function (dev) {
-                var c = counts.hasOwnProperty(dev.value) ? counts[dev.value] : 0;
-                if (c < bestCount) {
-                    bestCount = c;
-                    bestId = dev.value;
-                }
-            });
-
-            if (bestId !== null) {
-                selectEl.value = bestId;
-            }
-
-            var hidden = selectEl.closest('.task-row').querySelector('.task-assigned-hidden');
-            if (hidden) {
-                hidden.value = selectEl.value || '';
-            }
-        }
-
-        function filterAssigned(selectEl) {
-            var categorySelect = selectEl.closest('.task-row').querySelector('.task-category');
-            var cat = categorySelect ? categorySelect.value : 'backend';
-            var list = developersByCategory[cat] || [];
-            var currentVal = selectEl.value;
-            selectEl.innerHTML = '';
-            var unassigned = document.createElement('option');
-            unassigned.value = '';
-            unassigned.textContent = 'Unassigned';
-            selectEl.appendChild(unassigned);
-            list.forEach(function(o) {
-                var opt = document.createElement('option');
-                opt.value = o.value;
-                opt.textContent = o.text;
-                opt.setAttribute('data-role', cat);
-                if (o.value === currentVal) opt.selected = true;
-                selectEl.appendChild(opt);
-            });
-
-            // Auto-assign developer if nothing is selected yet or the previous
-            // value is no longer available for this category.
-            if (!selectEl.value) {
-                autoAssignDeveloper(selectEl, cat);
-            }
-
-            var hidden = selectEl.closest('.task-row').querySelector('.task-assigned-hidden');
-            if (hidden) {
-                hidden.value = selectEl.value || '';
-            }
         }
 
         addBtn.addEventListener('click', function() {
@@ -357,16 +203,6 @@
             var row = div.firstChild;
             container.appendChild(row);
             row.querySelector('.row-num').textContent = index + 1;
-            var assignedSelect = row.querySelector('.task-assigned');
-            if (assignedSelect) {
-                filterAssigned(assignedSelect);
-            }
-            row.querySelector('.task-category').addEventListener('change', function() {
-                var assignEl = row.querySelector('.task-assigned');
-                if (assignEl) {
-                    filterAssigned(assignEl);
-                }
-            });
         });
 
         container.addEventListener('click', function(e) {
@@ -376,17 +212,6 @@
             if (container.querySelectorAll('.task-row').length <= 1) return;
             row.remove();
             updateRowNumbers();
-        });
-
-        container.querySelectorAll('.task-row').forEach(function(row) {
-            var catSelect = row.querySelector('.task-category');
-            var assignSelect = row.querySelector('.task-assigned');
-            if (catSelect && assignSelect) {
-                filterAssigned(assignSelect);
-                catSelect.addEventListener('change', function() {
-                    filterAssigned(assignSelect);
-                });
-            }
         });
     })();
     </script>

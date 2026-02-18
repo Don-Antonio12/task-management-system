@@ -34,7 +34,12 @@
                 </li>
                 <li class="nav-item dropdown" style="position: relative;">
                     <a class="nav-link dropdown-toggle" href="javascript:void(0)" id="userDropdown" role="button" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: white;">
-                        <i class="fas fa-user-circle"></i> {{ Auth::user()->name }}
+                        @if(Auth::user()->profile_photo_url)
+                            <img src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" class="navbar-profile-photo">
+                        @else
+                            <i class="fas fa-user-circle"></i>
+                        @endif
+                        {{ Auth::user()->name }}
                     </a>
                     <ul class="dropdown-menu-custom" id="dropdownMenu" style="display: none; position: absolute; top: 100%; right: 0; background: white; min-width: 200px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; margin-top: 0.5rem; padding: 0.5rem 0;">
                         <li style="padding: 0;"><a class="dropdown-item-custom" href="{{ route('profile.edit') }}" style="display: block; padding: 0.75rem 1.5rem; color: #333; text-decoration: none; transition: background 0.2s;"><i class="fas fa-user"></i> Profile</a></li>
@@ -56,14 +61,19 @@
 
 
 <style>
+    .navbar-profile-photo {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(255,255,255,0.5);
+    }
     .dropdown-item-custom:hover {
         background-color: #f8f9fa;
     }
-    
     #userDropdown {
         transition: opacity 0.2s ease;
     }
-    
     #userDropdown:hover {
         opacity: 0.9;
     }

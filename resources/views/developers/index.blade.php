@@ -123,6 +123,41 @@
             color: #667eea;
         }
 
+        .project-details-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .project-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: #6c757d;
+        }
+
+        .project-detail i {
+            color: #1D809F;
+            width: 16px;
+        }
+
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .priority-low { background: #d1e7dd; color: #0f5132; }
+        .priority-medium { background: #fff3cd; color: #664d01; }
+        .priority-high { background: #f8d7da; color: #842029; }
+        .priority-urgent { background: #f69c6c; color: #fff; }
+
         .calendar-card {
             background: white;
             border-radius: 12px;
@@ -222,6 +257,26 @@
                         </div>
                         <div style="margin-top:1rem; background:#e9ecef; border-radius:8px; height:10px; overflow:hidden;">
                             <div style="width:{{ $p->percent_done }}%; height:10px; background:linear-gradient(90deg,#667eea,#1D809F); border-radius:8px;"></div>
+                        </div>
+                        <div class="project-details-row">
+                            @if($p->priority)
+                            <div class="project-detail">
+                                <i class="fas fa-flag"></i>
+                                <span class="priority-badge priority-{{ $p->priority }}">{{ ucfirst($p->priority) }}</span>
+                            </div>
+                            @endif
+                            @if($p->start_date)
+                            <div class="project-detail">
+                                <i class="fas fa-calendar-alt"></i>
+                                <strong>Start:</strong> {{ $p->start_date->format('M d, Y') }}
+                            </div>
+                            @endif
+                            @if($p->deadline)
+                            <div class="project-detail">
+                                <i class="fas fa-calendar-check"></i>
+                                <strong>Due:</strong> {{ $p->deadline->format('M d, Y') }}
+                            </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach

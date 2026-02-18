@@ -120,9 +120,14 @@
             border-radius: 8px;
             font-weight: 600;
             font-size: 0.875rem;
-            background: #764ba2;
+            background: #ffffff;
             color: white;
+            background: black;
             border: none;
+        }
+        .project-actions .btn-view:hover {
+            background: #6d6d6d;
+            color: white;
         }
         .project-actions .btn-icon {
             width: 38px;
@@ -142,6 +147,47 @@
         }
         .role-badge.assigned { color: #764ba2; background: #d1e7dd; }
         .role-badge.unassigned { color: #6c757d; background: #e9ecef; }
+        .project-details-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        .project-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .project-detail-item i {
+            color: #764ba2;
+            width: 16px;
+            text-align: center;
+        }
+        .project-detail-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 80px;
+        }
+        .project-detail-value {
+            color: #1a1d21;
+        }
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .priority-low { background: #d1e7dd; color: #0f5132; }
+        .priority-medium { background: #fff3cd; color: #664d01; }
+        .priority-high { background: #f8d7da; color: #842029; }
+        .priority-urgent { background: #f69c6c; color: #fff; }
     </style>
 
     <div class="projects-page">
@@ -164,6 +210,30 @@
                             <div class="project-card-body">
                                 <h3 class="project-card-title">{{ $project->name }}</h3>
                                 <p class="project-card-desc">{{ Str::limit($project->description, 100) ?: 'No description.' }}</p>
+
+                                <div class="project-details-wrap">
+                                    <div class="project-detail-item">
+                                        <i class="fas fa-flag"></i>
+                                        <span class="project-detail-label">Priority:</span>
+                                        <span class="priority-badge priority-{{ $project->priority ?? 'medium' }}">
+                                            {{ ucfirst($project->priority ?? 'Medium') }}
+                                        </span>
+                                    </div>
+                                    @if ($project->start_date)
+                                    <div class="project-detail-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span class="project-detail-label">Start:</span>
+                                        <span class="project-detail-value">{{ $project->start_date->format('M d, Y') }}</span>
+                                    </div>
+                                    @endif
+                                    @if ($project->deadline)
+                                    <div class="project-detail-item">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <span class="project-detail-label">Deadline:</span>
+                                        <span class="project-detail-value">{{ $project->deadline->format('M d, Y') }}</span>
+                                    </div>
+                                    @endif
+                                </div>
 
                                 <div class="project-card-section">
                                     <div class="project-stats">

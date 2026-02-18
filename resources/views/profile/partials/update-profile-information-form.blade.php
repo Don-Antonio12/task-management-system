@@ -1,16 +1,33 @@
 <section class="profile-section">
     <div class="section-header">
         <h3><i class="fas fa-user-edit"></i> Profile Information</h3>
-        <p>Update your account's profile information and email address.</p>
+        <p>Update your account's profile information, email address, and profile photo.</p>
     </div>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="form-content">
+    <form method="post" action="{{ route('profile.update') }}" class="form-content" enctype="multipart/form-data">
         @csrf
         @method('patch')
+
+        <div class="form-group profile-photo-group">
+            <label class="form-label">Profile Photo</label>
+            <div class="profile-photo-wrap">
+                <div class="profile-photo-preview">
+                    <div class="profile-photo-placeholder" id="profilePhotoPlaceholder" style="{{ $user->profile_photo_url ? 'display: none;' : '' }}">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <img src="{{ $user->profile_photo_url ?? '' }}" alt="Profile" class="profile-photo-img" id="profilePhotoPreview" style="{{ $user->profile_photo_url ? '' : 'display: none;' }}">
+                </div>
+                <input type="file" name="profile_photo" id="profile_photo" class="form-control profile-photo-input" accept="image/*">
+            </div>
+            @error('profile_photo')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <p class="help-text">Max 2MB. JPG, PNG or GIF.</p>
+        </div>
 
         <div class="form-group">
             <label for="name" class="form-label">Name</label>
@@ -205,4 +222,37 @@
         color: #198754;
         font-weight: 600;
     }
+
+    .profile-photo-group { margin-bottom: 1.5rem; }
+    .profile-photo-wrap { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .profile-photo-preview { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .profile-photo-img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #1D809F; }
+    .profile-photo-input { max-width: 280px; }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('profile_photo');
+    var preview = document.getElementById('profilePhotoPreview');
+    var placeholder = document.getElementById('profilePhotoPlaceholder');
+    if (input && preview) {
+        input.addEventListener('change', function() {
+            var file = this.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+                if (placeholder) placeholder.style.display = 'flex';
+            }
+        });
+    }
+});
+</script>

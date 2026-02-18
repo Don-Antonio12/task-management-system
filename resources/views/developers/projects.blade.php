@@ -30,6 +30,14 @@
         .dev-project-card .card-progress-bar { height: 100%; background: linear-gradient(90deg,#667eea,#1D809F); border-radius: 8px; }
         .dev-project-card .card-percent { font-size: 0.9rem; font-weight: 600; color: #1D809F; min-width: 3rem; text-align: right; }
         .dev-project-card .card-footer { padding: 1.25rem 1.5rem; border-top: 1px solid #f0f0f0; }
+        .project-details-section { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; margin: 1rem 0 0 0; padding: 1rem; background: #f8f9fa; border-radius: 8px; }
+        .project-detail-item { display: flex; align-items: center; gap: 0.4rem; color: #495057; }
+        .project-detail-item i { color: #1D809F; width: 14px; }
+        .priority-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.6rem; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
+        .priority-low { background: #d1e7dd; color: #0f5132; }
+        .priority-medium { background: #fff3cd; color: #664d01; }
+        .priority-high { background: #f8d7da; color: #842029; }
+        .priority-urgent { background: #f69c6c; color: #fff; }
     </style>
 
     <div class="container-fluid px-4 px-lg-5 pt-2 pb-4">
@@ -46,6 +54,28 @@
                         </div>
                         <span class="card-percent">{{ $p->percent_done }}%</span>
                     </div>
+
+                    <div class="project-details-section">
+                        @if($p->priority)
+                        <div class="project-detail-item">
+                            <i class="fas fa-flag"></i>
+                            <span class="priority-badge priority-{{ $p->priority }}">{{ ucfirst($p->priority) }}</span>
+                        </div>
+                        @endif
+                        @if($p->start_date)
+                        <div class="project-detail-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Start: {{ $p->start_date->format('M d') }}</span>
+                        </div>
+                        @endif
+                        @if($p->deadline)
+                        <div class="project-detail-item">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Due: {{ $p->deadline->format('M d') }}</span>
+                        </div>
+                        @endif
+                    </div>
+
                     <div class="card-footer" style="display:flex; flex-direction:column; gap:0.5rem;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-size:0.85rem; color:#6c757d;"><i class="fas fa-tasks me-1"></i>{{ $p->assigned_total }} tasks</span>

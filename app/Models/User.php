@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'profile_photo_path',
     ];
 
     /**
@@ -82,6 +83,17 @@ class User extends Authenticatable
     public function isAdminOrCustomer(): bool
     {
         return in_array($this->role, ['admin', 'customer']);
+    }
+
+    /**
+     * Get the URL for the user's profile photo.
+     */
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        if ($this->profile_photo_path) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+        return null;
     }
 
     /**

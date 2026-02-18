@@ -55,6 +55,111 @@
                                 @enderror
                             </div>
 
+                            <div class="mb-4">
+                                <label for="priority" class="form-label" style="font-weight: 600;">Priority *</label>
+                                <select class="form-select @error('priority') is-invalid @enderror" id="priority" name="priority" required>
+                                    <option value="low" @selected(old('priority', $project->priority) === 'low')>Low</option>
+                                    <option value="medium" @selected(old('priority', $project->priority) === 'medium')>Medium</option>
+                                    <option value="high" @selected(old('priority', $project->priority) === 'high')>High</option>
+                                    <option value="urgent" @selected(old('priority', $project->priority) === 'urgent')>Urgent</option>
+                                </select>
+                                @error('priority')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="start_date" class="form-label" style="font-weight: 600;">Start Date</label>
+                                    <input 
+                                        type="date" 
+                                        class="form-control @error('start_date') is-invalid @enderror" 
+                                        id="start_date" 
+                                        name="start_date" 
+                                        value="{{ old('start_date', $project->start_date?->format('Y-m-d')) }}">
+                                    @error('start_date')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="deadline" class="form-label" style="font-weight: 600;">Deadline</label>
+                                    <input 
+                                        type="date" 
+                                        class="form-control @error('deadline') is-invalid @enderror" 
+                                        id="deadline" 
+                                        name="deadline" 
+                                        value="{{ old('deadline', $project->deadline?->format('Y-m-d')) }}">
+                                    @error('deadline')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Backend developer</label>
+                                    @if($project->backend_assigned_to)
+                                        <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 0.75rem 1rem;">
+                                            <div style="color: #495057; font-weight: 500;">
+                                                <i class="fas fa-lock" style="color: #764ba2; margin-right: 0.5rem;"></i>
+                                                {{ $project->backendDeveloper->name ?? 'Unknown' }}
+                                            </div>
+                                            <small style="color: #6c757d; display: block; margin-top: 0.5rem;">
+                                                Assigned (cannot change)
+                                            </small>
+                                        </div>
+                                    @else
+                                        <select class="form-select" id="backend_assigned_to" name="backend_assigned_to">
+                                            <option value="">— None —</option>
+                                            @foreach($backendUsers as $u)
+                                                <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Frontend developer</label>
+                                    @if($project->frontend_assigned_to)
+                                        <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 0.75rem 1rem;">
+                                            <div style="color: #495057; font-weight: 500;">
+                                                <i class="fas fa-lock" style="color: #764ba2; margin-right: 0.5rem;"></i>
+                                                {{ $project->frontendDeveloper->name ?? 'Unknown' }}
+                                            </div>
+                                            <small style="color: #6c757d; display: block; margin-top: 0.5rem;">
+                                                Assigned (cannot change)
+                                            </small>
+                                        </div>
+                                    @else
+                                        <select class="form-select" id="frontend_assigned_to" name="frontend_assigned_to">
+                                            <option value="">— None —</option>
+                                            @foreach($frontendUsers as $u)
+                                                <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Server admin</label>
+                                    @if($project->server_assigned_to)
+                                        <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 0.75rem 1rem;">
+                                            <div style="color: #495057; font-weight: 500;">
+                                                <i class="fas fa-lock" style="color: #764ba2; margin-right: 0.5rem;"></i>
+                                                {{ $project->serverDeveloper->name ?? 'Unknown' }}
+                                            </div>
+                                            <small style="color: #6c757d; display: block; margin-top: 0.5rem;">
+                                                Assigned (cannot change)
+                                            </small>
+                                        </div>
+                                    @else
+                                        <select class="form-select" id="server_assigned_to" name="server_assigned_to">
+                                            <option value="">— None —</option>
+                                            @foreach($serverUsers as $u)
+                                                <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                </div>
+                            </div>
+
                             <div style="display: flex; gap: 1rem;">
                                 <button type="submit" class="btn btn-primary btn-lg flex-grow-1" style="background: #764ba2; color: white; border: none;">
                                     <i class="fas fa-check me-2"></i>Update Project

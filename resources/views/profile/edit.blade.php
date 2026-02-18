@@ -128,9 +128,18 @@
                 <i class="fas fa-check-circle"></i> Profile updated successfully!
             </div>
         @endif
+        @if (session('status') === 'password-updated')
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i> Password updated successfully!
+            </div>
+        @endif
 
         <div class="profile-section">
             @include('profile.partials.update-profile-information-form')
+        </div>
+
+        <div class="profile-section">
+            @include('profile.partials.update-password-form')
         </div>
 
         <div class="profile-section danger-zone">

@@ -26,6 +26,7 @@ Route::get('tasks', [TaskController::class, 'index'])->name('tasks.index');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::resource('tasks', TaskController::class);
@@ -39,8 +40,11 @@ Route::middleware('auth')->group(function () {
     
     // Project routes
     Route::resource('projects', ProjectController::class);
+    Route::patch('projects/{project}/update-status', [ProjectController::class, 'updateStatus'])->name('projects.updateStatus');
     Route::get('projects/{project}/tasks/create', [ProjectController::class, 'createTasks'])->name('projects.tasks.create');
     Route::post('projects/{project}/tasks', [ProjectController::class, 'storeTasks'])->name('projects.tasks.store');
+    // AJAX overview endpoint for dashboard live updates
+    Route::get('dashboard/overview', [DashboardController::class, 'overview'])->name('dashboard.overview');
 });
 
 require __DIR__.'/auth.php';

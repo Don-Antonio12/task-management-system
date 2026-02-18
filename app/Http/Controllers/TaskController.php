@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -54,7 +55,6 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'deadline' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
             'status' => 'required|in:todo,in_progress,in_review,done',
             'category' => 'required|in:backend,frontend,server',
@@ -62,6 +62,11 @@ class TaskController extends Controller
         ]);
 
         $validated['user_id'] = Auth::id();
+
+        // Auto-assign using round-robin if no developer is selected
+        if (empty($validated['assigned_to'])) {
+            $validated['assigned_to'] = $this->roundRobinAssigneeForRole($validated['category']);
+        }
 
         Task::create($validated);
 
@@ -104,7 +109,6 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'deadline' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
             'status' => 'required|in:todo,in_progress,in_review,done',
             'category' => 'required|in:backend,frontend,server',
@@ -149,5 +153,46 @@ class TaskController extends Controller
             'task_id' => $task->id,
             'status' => $task->status,
         ]);
+    }
+
+    /**
+     * Round-robin per role: assign to the dev with the fewest tasks in this category.
+     * Ensures balanced workload distribution across all developers.
+     */
+    protected function roundRobinAssigneeForRole(string $role): ?int
+    {
+        $userIds = User::where('role', $role)->orderBy('name')->orderBy('id')->pluck('id')->toArray();
+        if (empty($userIds)) {
+            return null;
+        }
+
+        $counts = Task::query()
+            ->where('category', $role)
+            ->whereIn('assigned_to', $userIds)
+            ->whereNotNull('assigned_to')
+            ->selectRaw('assigned_to, count(*) as task_count')
+            ->groupBy('assigned_to')
+            ->pluck('task_count', 'assigned_to')
+            ->toArray();
+
+        $minCount = null;
+        foreach ($userIds as $id) {
+            $c = (int) ($counts[$id] ?? 0);
+            if ($minCount === null || $c < $minCount) {
+                $minCount = $c;
+            }
+        }
+        if ($minCount === null) {
+            return (int) $userIds[0];
+        }
+
+        foreach ($userIds as $id) {
+            $c = (int) ($counts[$id] ?? 0);
+            if ($c === $minCount) {
+                return (int) $id;
+            }
+        }
+
+        return (int) $userIds[0];
     }
 }

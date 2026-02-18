@@ -19,10 +19,13 @@ class Task extends Model
         'status',
         'order',
         'category',
+        'priority',
+        'start_date',
     ];
 
     protected $casts = [
         'deadline' => 'datetime',
+        'start_date' => 'date',
     ];
 
     public function user()

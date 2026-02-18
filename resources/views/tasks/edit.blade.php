@@ -171,14 +171,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="deadline" class="form-label">Deadline</label>
-                        <input type="datetime-local" class="form-control @error('deadline') is-invalid @enderror" id="deadline" name="deadline" value="{{ old('deadline', $task->deadline ? $task->deadline->format('Y-m-d\TH:i') : '') }}">
-                        @error('deadline')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
 
-                    <div class="form-group">
                         <label for="category" class="form-label">Category <span style="color: #dc3545;">*</span></label>
                         <select class="form-select @error('category') is-invalid @enderror" id="category" name="category" required>
                             <option value="backend" {{ old('category', $task->category) == 'backend' ? 'selected' : '' }}>Backend</option>
@@ -192,21 +185,33 @@
 
                     <div class="form-group">
                         <label for="assigned_to" class="form-label">Assign to</label>
-                        <select class="form-select @error('assigned_to') is-invalid @enderror" id="assigned_to" name="assigned_to">
-                            <option value="">-- Not assigned --</option>
-                            @foreach($backendUsers as $u)
-                            <option value="{{ $u->id }}" data-role="backend">{{ $u->name }} ({{ $u->email }})</option>
-                            @endforeach
-                            @foreach($frontendUsers as $u)
-                            <option value="{{ $u->id }}" data-role="frontend">{{ $u->name }} ({{ $u->email }})</option>
-                            @endforeach
-                            @foreach($serverUsers as $u)
-                            <option value="{{ $u->id }}" data-role="server">{{ $u->name }} ({{ $u->email }})</option>
-                            @endforeach
-                        </select>
-                        @error('assigned_to')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        @if($task->assigned_to)
+                            <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem;">
+                                <div style="color: #495057; font-weight: 500;">
+                                    <i class="fas fa-lock" style="color: #1D809F; margin-right: 0.5rem;"></i>
+                                    Assigned to: <strong style="color: #1D809F;">{{ $task->assignedUser->name ?? 'Unknown' }}</strong>
+                                </div>
+                                <small style="color: #6c757d; display: block; margin-top: 0.5rem;">
+                                    This task has already been assigned and cannot be reassigned.
+                                </small>
+                            </div>
+                        @else
+                            <select class="form-select @error('assigned_to') is-invalid @enderror" id="assigned_to" name="assigned_to">
+                                <option value="">-- Not assigned --</option>
+                                @foreach($backendUsers as $u)
+                                <option value="{{ $u->id }}" data-role="backend">{{ $u->name }} ({{ $u->email }})</option>
+                                @endforeach
+                                @foreach($frontendUsers as $u)
+                                <option value="{{ $u->id }}" data-role="frontend">{{ $u->name }} ({{ $u->email }})</option>
+                                @endforeach
+                                @foreach($serverUsers as $u)
+                                <option value="{{ $u->id }}" data-role="server">{{ $u->name }} ({{ $u->email }})</option>
+                                @endforeach
+                            </select>
+                            @error('assigned_to')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        @endif
                     </div>
 
                     <div class="form-group">
@@ -264,6 +269,7 @@
     </div>
 
     <script>
+    @if(!$task->assigned_to)
     (function() {
         var categorySelect = document.getElementById('category');
         var assignedSelect = document.getElementById('assigned_to');
@@ -302,5 +308,6 @@
 
         filterAssignedTo(@json(old('assigned_to', $task->assigned_to)));
     })();
+    @endif
     </script>
 </x-app-layout>

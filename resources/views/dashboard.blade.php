@@ -216,28 +216,48 @@
             color:rgba(0, 0, 0, 0.5);
         }
 
-        .social-link {
-                width: 50px;
-                height: 50px;
-                border-radius: 50%;
-                background: rgba(102, 126, 234, 0.2);
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                transition: all 0.3s ease;
-                margin: 0 0.5rem;
-                border: 2px solid transparent;
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
             }
-            
-            .social-link:hover {
-                background: #667eea;
-                transform: translateY(-3px);
-                border-color: #667eea;
-            }
-            
-            
-    </style>
+        }
+
+</style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Overview Cards -->
     <div style="margin-top: 2rem; width: 100%;">
@@ -249,19 +269,19 @@
             </div>
             <div class="info-grid {{ Auth::user()->isAdminOrCustomer() ? 'stats-4col' : '' }}" style="width: 100%;">
                 <div class="stat-card">
-                    <p class="stat-number">{{ $totalProjects ?? 0 }}</p>
+                    <p id="totalProjectsCount" class="stat-number">{{ $totalProjects ?? 0 }}</p>
                     <p class="stat-label"><i class="fas fa-folder me-1"></i>Total Projects</p>
                 </div>
                 <div class="stat-card">
-                    <p class="stat-number">@if(Auth::user()->isAdminOrCustomer()) {{ $projectInProgress ?? 0 }} @else {{ $inProgressTasks }} @endif</p>
+                    <p id="inProgressCount" class="stat-number">@if(Auth::user()->isAdminOrCustomer()) {{ $projectInProgress ?? 0 }} @else {{ $inProgressTasks }} @endif</p>
                     <p class="stat-label"><i class="fas fa-tasks me-1"></i>In Progress</p>
                 </div>
                 <div class="stat-card">
-                    <p class="stat-number">@if(Auth::user()->isAdminOrCustomer()) {{ $projectCompleted ?? 0 }} @else {{ $completedTasks }} @endif</p>
+                    <p id="completedCount" class="stat-number">@if(Auth::user()->isAdminOrCustomer()) {{ $projectCompleted ?? 0 }} @else {{ $completedTasks }} @endif</p>
                     <p class="stat-label"><i class="fas fa-check-double me-1"></i>Completed</p>
                 </div>
                 <div class="stat-card">
-                    <p class="stat-number">@if(Auth::user()->isAdminOrCustomer()) {{ $projectOverdue ?? 0 }} @else {{ $overdueTasks }} @endif</p>
+                    <p id="overdueCount" class="stat-number">@if(Auth::user()->isAdminOrCustomer()) {{ $projectOverdue ?? 0 }} @else {{ $overdueTasks }} @endif</p>
                     <p class="stat-label"><i class="fas fa-clock me-1"></i>Overdue</p>
                 </div>
             </div>
@@ -289,9 +309,42 @@
             </div>
         </div>
         @endif
-    </div>
 
-    <!-- Main Content -->
+        @if(Auth::user()->isAdminOrCustomer())
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-pie" style="color: #1D809F;"></i>
+                    Project Status Distribution
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="projectStatusChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-tasks" style="color: #1D809F;"></i>
+                    Task Status by Project
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="projectFilterSelect" style="font-weight: 600; color: #495057; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Select Project:</label>
+                    <select id="projectFilterSelect" class="form-select" style="border: 1px solid #dee2e6; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.95rem;">
+                        <option value="">-- Choose a project --</option>
+                        @foreach($projects as $p)
+                        <option value="{{ $p->id }}" @if($loop->first)selected @endif>{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="taskStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        {{-- Projects Section --}}
     <div class="row mt-4">
         <div class="col-lg-8">
             @if(Auth::user()->isAdminOrCustomer())
@@ -299,18 +352,40 @@
                 <h5><i class="fas fa-folder"></i> Projects</h5>
                 <p>Manage your projects and organize tasks. You have <strong>{{ $totalProjects ?? 0 }}</strong> project{{ ($totalProjects ?? 0) != 1 ? 's' : '' }}.</p>
                 @if(!($projects ?? collect())->isEmpty())
-                    <div style="margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem;">
+                    <div style="margin-top:1rem; display:flex; flex-direction:column; gap:1rem;">
                         @foreach($projects->take(5) as $p)
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem;">
-                                <div style="flex:1; min-width:0;">
-                                    <a href="{{ route('projects.show', $p) }}" style="font-weight:700; color:#1a1a2e; text-decoration:none;">{{ $p->name }}</a>
-                                    <div style="font-size:0.85rem; color:#6c757d;">{{ $p->percent_done }}% — {{ $p->done_count }} / {{ $p->tasks_count }} tasks done</div>
-                                    <div style="margin-top:0.5rem; background:#e9ecef; border-radius:6px; height:8px; overflow:hidden;">
-                                        <div style="width:{{ $p->percent_done }}%; height:8px; background:linear-gradient(135deg,rgb(37, 4, 39) 0%, #764ba2 100%);"></div>
+                            <div style="display:flex; flex-direction:column; gap:0.75rem; padding:1rem; background:#f8f9fa; border-radius:8px; border:1px solid #e9ecef;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem;">
+                                    <div style="flex:1; min-width:0;">
+                                        <a href="{{ route('projects.show', $p) }}" style="font-weight:700; color:#1a1a2e; text-decoration:none;">{{ $p->name }}</a>
+                                        <div style="font-size:0.85rem; color:#6c757d; margin-top:0.25rem;">{{ $p->percent_done }}% — {{ $p->done_count }} / {{ $p->tasks_count }} tasks done</div>
+                                    </div>
+                                    <div style="text-align:right; min-width:100px;">
+                                        <span class="badge bg-{{ $p->status === 'completed' ? 'success' : ($p->status === 'overdue' ? 'danger' : 'secondary') }} status-badge" data-project-id="{{ $p->id }}" data-current-status="{{ $p->status }}" style="cursor:pointer; transition:all 0.2s;" title="Click to change status">{{ ucfirst($p->status ?? 'active') }}</span>
                                     </div>
                                 </div>
-                                <div style="text-align:right; min-width:100px;">
-                                    <span class="badge bg-{{ $p->status === 'completed' ? 'success' : 'secondary' }}">{{ ucfirst($p->status ?? 'active') }}</span>
+                                <div style="margin-top:0rem; background:#e9ecef; border-radius:6px; height:8px; overflow:hidden;">
+                                    <div style="width:{{ $p->percent_done }}%; height:8px; background:linear-gradient(135deg,rgb(37, 4, 39) 0%, #764ba2 100%);"></div>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:1rem; font-size:0.85rem;">
+                                    @if($p->priority)
+                                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                                        <i class="fas fa-flag" style="color:#764ba2;"></i>
+                                        <span style="font-weight:600; background:{{ in_array($p->priority, ['urgent', 'high']) ? '#f8d7da' : '#d1e7dd' }}; padding:0.2rem 0.6rem; border-radius:4px; {{ in_array($p->priority, ['urgent', 'high']) ? 'color:#842029' : 'color:#0f5132' }};font-size:0.75rem;">{{ ucfirst($p->priority) }}</span>
+                                    </div>
+                                    @endif
+                                    @if($p->start_date)
+                                    <div style="display:flex; align-items:center; gap:0.4rem; color:#495057;">
+                                        <i class="fas fa-calendar-alt" style="color:#764ba2;"></i>
+                                        <st>Start: {{ $p->start_date->format('M d, Y') }}</span>
+                                    </div>
+                                    @endif
+                                    @if($p->deadline)
+                                    <div style="display:flex; align-items:center; gap:0.4rem; color:#495057;">
+                                        <i class="fas fa-calendar-check" style="color:#764ba2;"></i>
+                                        <span>Due: {{ $p->deadline->format('M d, Y') }}</span>
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -335,8 +410,8 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="enhanced-card calendar-card">
+             <div class="col-lg-4">
+                <div class="enhanced-card calendar-card">
                 <h5><i class="fas fa-calendar-alt"></i> Calendar</h5>
                 <div class="calendar-header">
                     <span id="adminCalendarMonth"></span>
@@ -360,54 +435,517 @@
             </div>
 
             <div class="enhanced-card" style="margin-top: 1.5rem;">
-                <h5><i class="fas fa-info-circle"></i> Quick Links</h5>
-                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                    <a href="{{ route('tasks.index') }}" class="btn btn-sm btn-outline-secondary" style="width: 100%;">
-                        <i class="fas fa-list"></i> View Tasks
-                    </a>
-                    <a href="{{ route('tasks.create') }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-plus"></i> Create Task
-                    </a>
+                <h5><i class="fas fa-bolt"></i> Quick Links</h5>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
                     @if(Auth::user()->isAdminOrCustomer())
-                    <a href="{{ route('projects.index') }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-folder"></i> Projects
-                    </a>
+                        <a href="{{ route('projects.index') }}" class="quick-link-btn">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <i class="fas fa-eye" style="font-size: 1.2rem; color: #1D809F;"></i>
+                                <div style="text-align: left;">
+                                    <div style="font-weight: 600; color: #212529;">View Projects</div>
+                                    <small style="color: #6c757d;">Manage all projects</small>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right" style="color: #adb5bd; margin-left: auto;"></i>
+                        </a>
+                        <a href="{{ route('projects.create') }}" class="quick-link-btn">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <i class="fas fa-plus-circle" style="font-size: 1.2rem; color: #28a745;"></i>
+                                <div style="text-align: left;">
+                                    <div style="font-weight: 600; color: #212529;">Create Project</div>
+                                    <small style="color: #6c757d;">Start a new project</small>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right" style="color: #adb5bd; margin-left: auto;"></i>
+                        </a>
                     @endif
                 </div>
             </div>
+            
+            <style>
+                .quick-link-btn {
+                    display: flex;
+                    align-items: center;
+                    padding: 1.25rem;
+                    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                    border: 1px solid #e9ecef;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    color: inherit;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                }
+
+                .quick-link-btn:hover {
+                    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                    border-color: #1D809F;
+                    box-shadow: 0 4px 12px rgba(29, 128, 159, 0.15);
+                    transform: translateX(4px);
+                }
+
+                .quick-link-btn small {
+                    font-size: 0.8rem;
+                    display: block;
+                    margin-top: 0.25rem;
+                }
+            </style>
         </div>
 
-        <!-- Footer -->
-    <footer class="footer" style="margin-top: 2.5rem;">
-            <div class="container px-4 px-lg-5">
-                <div class="row">
-                    <div class="col-lg-6 text-center text-lg-start mb-4 mb-lg-0">
-                        <h5 class="mb-2">Task Management System</h5>
-                        <p class="text-muted">Organize, track, and manage your tasks efficiently.</p>
-                    </div>
-                    <div class="col-lg-6 text-center text-lg-end">
-                        <a href="#" class="social-link">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-link">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-link">
-                            <i class="fab fa-github"></i>
-                        </a>
-                    </div>
+
+    </div>
+
+    <!-- Status Update Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit" style="color: #1D809F; margin-right: 0.5rem;"></i>Update Project Status
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
-                <div class="text-center">
-                    <p class="text-muted small mb-0">&copy; 2026 Task Management System. All rights reserved.</p>
+                <div class="modal-body">
+                    <p style="color: #6c757d; margin-bottom: 1.5rem;">Select new status for this project:</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button class="btn btn-outline-primary status-option" data-status="active" style="text-align: left; padding: 0.75rem 1rem; border: 2px solid #dee2e6;">
+                            <i class="fas fa-circle" style="color: #1D809F; margin-right: 0.5rem;"></i>
+                            <strong>Active</strong>
+                            <span style="display: block; font-size: 0.85rem; color: #6c757d; margin-top: 0.25rem;">Project is currently in progress</span>
+                        </button>
+                        <button class="btn btn-outline-success status-option" data-status="completed" style="text-align: left; padding: 0.75rem 1rem; border: 2px solid #dee2e6;">
+                            <i class="fas fa-check-circle" style="color: #198754; margin-right: 0.5rem;"></i>
+                            <strong>Completed</strong>
+                            <span style="display: block; font-size: 0.85rem; color: #6c757d; margin-top: 0.25rem;">Project has been finished</span>
+                        </button>
+                        <button class="btn btn-outline-danger status-option" data-status="overdue" style="text-align: left; padding: 0.75rem 1rem; border: 2px solid #dee2e6;">
+                            <i class="fas fa-exclamation-circle" style="color: #dc3545; margin-right: 0.5rem;"></i>
+                            <strong>Overdue</strong>
+                            <span style="display: block; font-size: 0.85rem; color: #6c757d; margin-top: 0.25rem;">Project deadline has passed</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </footer>
+        </div>
+    </div>
 
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="border-bottom: 2px solid #d1e7dd; background: #f8f9fa;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle" style="color: #198754; margin-right: 0.5rem;"></i>Success
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="text-align: center; padding: 2rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #198754;"></i>
+                    </div>
+                    <h5 style="color: #198754; margin-bottom: 0.5rem;">Project Status Updated</h5>
+                    <p style="color: #6c757d; margin-bottom: 0;">Your project status has been successfully updated!</p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                        <i class="fas fa-check"></i> Okay
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script>
-        (function () {
+        // Chart.js initialization with data from dashboard
+        const chartColors = {
+            primary: '#1D809F',
+            success: '#198754',
+            warning: '#ffc107',
+            danger: '#dc3545',
+            secondary: '#6c757d',
+            purple: '#764ba2'
+        };
+
+        // Wait for Chart.js to load
+        function initializeCharts() {
+            // Data from dashboard variables
+            const totalProjects = {{ $totalProjects ?? 0 }};
+            const projectCompleted = {{ $projectCompleted ?? 0 }};
+            const projectInProgress = {{ $projectInProgress ?? 0 }};
+            const projectOverdue = {{ $projectOverdue ?? 0 }};
+
+            const activeProjects = totalProjects - projectCompleted;
+
+            // Project data with task statuses
+            window.projectsData = {!! json_encode($projects->map(function($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'todo' => $p->tasks->where('status', 'todo')->count(),
+                    'in_progress' => $p->tasks->where('status', 'in_progress')->count(),
+                    'in_review' => $p->tasks->where('status', 'in_review')->count(),
+                    'done' => $p->tasks->where('status', 'done')->count()
+                ];
+            })->all()) !!};
+
+            // Project Status Distribution Pie Chart (store globally)
+            if (document.getElementById('projectStatusChart')) {
+                const ctx1 = document.getElementById('projectStatusChart').getContext('2d');
+                window.projectStatusChart = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Active', 'Completed', 'Overdue'],
+                        datasets: [{
+                            data: [activeProjects, projectCompleted, projectOverdue],
+                            backgroundColor: [
+                                chartColors.primary,
+                                chartColors.success,
+                                chartColors.danger
+                            ],
+                            borderColor: ['#fff', '#fff', '#fff'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: { size: 12, weight: '600' },
+                                    color: '#495057'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Task Status Chart for selected project (store globally)
+            window.taskStatusChart = null;
+            const projectFilterSelect = document.getElementById('projectFilterSelect');
+            
+            function updateTaskStatusChart(projectId) {
+                const project = window.projectsData.find(p => p.id == projectId);
+                const ctx2 = document.getElementById('taskStatusChart');
+                
+                if (!ctx2) return;
+                
+                if (window.taskStatusChart) {
+                    window.taskStatusChart.destroy();
+                }
+                
+                if (!project) {
+                    window.taskStatusChart = new Chart(ctx2.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: []
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                    return;
+                }
+
+                window.taskStatusChart = new Chart(ctx2.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['To Do', 'In Progress', 'In Review', 'Done'],
+                        datasets: [{
+                            label: 'Task Count',
+                            data: [project.todo, project.in_progress, project.in_review, project.done],
+                            backgroundColor: [
+                                '#e9ecef',
+                                chartColors.warning,
+                                '#6c757d',
+                                chartColors.success
+                            ],
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    font: { size: 11, weight: '600' },
+                                    color: '#495057'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    color: '#6c757d'
+                                },
+                                grid: {
+                                    color: '#e9ecef'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#495057',
+                                    font: { weight: '600' }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Expose updater so polling can refresh the task chart
+            window.updateTaskStatusChart = updateTaskStatusChart;
+
+            // Event listener for project filter
+            if (projectFilterSelect) {
+                projectFilterSelect.addEventListener('change', function() {
+                    updateTaskStatusChart(this.value);
+                });
+                
+                // Initialize with the first project if one is selected
+                if (projectFilterSelect.value) {
+                    updateTaskStatusChart(projectFilterSelect.value);
+                }
+            }
+        }
+
+        // Initialize charts when the page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeCharts();
+                // start polling after charts initialize
+                startDashboardPolling();
+            });
+        } else {
+            initializeCharts();
+            startDashboardPolling();
+        }
+    </script>
+
+    <script>
+        // Polling: fetch overview data and update DOM + charts
+        function startDashboardPolling() {
+            // fetch immediately, then every 10 seconds
+            fetchOverviewAndUpdate();
+            if (window._dashboardPollInterval) {
+                clearInterval(window._dashboardPollInterval);
+            }
+            window._dashboardPollInterval = setInterval(fetchOverviewAndUpdate, 10000);
+            // expose starter so it can be triggered from other scripts or console
+            window.startDashboardPolling = startDashboardPolling;
+        }
+
+        window.fetchOverviewAndUpdate = async function() {
+            console.debug('fetchOverviewAndUpdate called');
+            try {
+                const resp = await fetch('/dashboard/overview', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!resp.ok) {
+                    const text = await resp.text().catch(() => '');
+                    console.warn('Overview fetch failed', resp.status, text.substring(0, 200));
+                    return;
+                }
+
+                const contentType = resp.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await resp.text().catch(() => '');
+                    console.warn('Overview returned non-JSON response (maybe redirected to login):', text.substring(0, 200));
+                    return;
+                }
+
+                const data = await resp.json();
+                console.debug('Overview data received', data);
+
+                // Update stat counters
+                const totalEl = document.getElementById('totalProjectsCount');
+                if (totalEl) totalEl.textContent = data.totalProjects ?? 0;
+                const inPrEl = document.getElementById('inProgressCount');
+                if (inPrEl) inPrEl.textContent = data.projectInProgress ?? 0;
+                const compEl = document.getElementById('completedCount');
+                if (compEl) compEl.textContent = data.projectCompleted ?? 0;
+                const overEl = document.getElementById('overdueCount');
+                if (overEl) overEl.textContent = data.projectOverdue ?? 0;
+
+                // Update projects data used by charts
+                window.projectsData = (data.projects || []).map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    todo: p.todo || 0,
+                    in_progress: p.in_progress || 0,
+                    in_review: p.in_review || 0,
+                    done: p.done || 0
+                }));
+
+                // Update projectStatusChart
+                if (window.projectStatusChart) {
+                    const active = (data.totalProjects || 0) - (data.projectCompleted || 0);
+                    window.projectStatusChart.data.datasets[0].data = [active, data.projectCompleted || 0, data.projectOverdue || 0];
+                    window.projectStatusChart.update();
+                }
+
+                // Rebuild project select while preserving selection
+                const sel = document.getElementById('projectFilterSelect');
+                const prev = sel ? sel.value : null;
+                if (sel) {
+                    sel.innerHTML = '<option value="">-- Choose a project --</option>';
+                    (data.projects || []).forEach((p, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.name;
+                        if (prev && prev == p.id) opt.selected = true;
+                        else if (!prev && i === 0) opt.selected = true;
+                        sel.appendChild(opt);
+                    });
+                }
+
+                // Update task chart for selected project
+                const selected = sel ? sel.value : (data.projects && data.projects[0] ? data.projects[0].id : null);
+                if (window.updateTaskStatusChart) {
+                    window.updateTaskStatusChart(selected);
+                } else if (window.taskStatusChart && selected) {
+                    const proj = window.projectsData.find(x => x.id == selected);
+                    if (proj) {
+                        window.taskStatusChart.data.datasets[0].data = [proj.todo, proj.in_progress, proj.in_review, proj.done];
+                        window.taskStatusChart.update();
+                    }
+                }
+
+            } catch (error) {
+                console.error('Overview fetch error', error);
+            }
+        }
+    </script>
+
+    <script>
+        // Project Status Update Handler
+        function initializeProjectStatusUpdate() {
+            if (typeof bootstrap === 'undefined') {
+                console.error('Bootstrap not loaded');
+                return;
+            }
+
+            const statusModalEl = document.getElementById('statusModal');
+            if (!statusModalEl) {
+                console.error('Status modal not found');
+                return;
+            }
+
+            const statusModal = new bootstrap.Modal(statusModalEl);
+            let currentProjectId = null;
+
+            // Attach click listeners to status badges
+            const statusBadges = document.querySelectorAll('.status-badge');
+            statusBadges.forEach(badge => {
+                badge.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    currentProjectId = this.getAttribute('data-project-id');
+                    statusModal.show();
+                });
+            });
+
+            // Attach click listeners to status options
+            const statusOptions = document.querySelectorAll('.status-option');
+            statusOptions.forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const newStatus = this.getAttribute('data-status');
+                    
+                    if (!currentProjectId) {
+                        alert('No project selected');
+                        return;
+                    }
+
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                        if (!csrfToken) {
+                            alert('CSRF token not found');
+                            return;
+                        }
+
+                        const response = await fetch(`/projects/${currentProjectId}/update-status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ status: newStatus })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            statusModal.hide();
+                            
+                            // Update the badge
+                            const badge = document.querySelector(`[data-project-id="${currentProjectId}"]`);
+                            if (badge) {
+                                const statusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                                badge.textContent = statusText;
+                                badge.setAttribute('data-current-status', newStatus);
+                                
+                                // Update badge color
+                                badge.className = 'badge status-badge';
+                                badge.setAttribute('style', 'cursor:pointer; transition:all 0.2s;');
+                                if (newStatus === 'completed') {
+                                    badge.classList.add('bg-success');
+                                } else if (newStatus === 'overdue') {
+                                    badge.classList.add('bg-danger');
+                                } else {
+                                    badge.classList.add('bg-secondary');
+                                }
+                                badge.setAttribute('title', 'Click to change status');
+                            }
+
+                            // Show success modal
+                            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                            successModal.show();
+                            // Trigger immediate dashboard refresh so cards/charts update
+                            if (typeof fetchOverviewAndUpdate === 'function') {
+                                try { fetchOverviewAndUpdate(); } catch(e) { console.warn('Immediate overview refresh failed', e); }
+                            } else if (window.fetchOverviewAndUpdate) {
+                                try { window.fetchOverviewAndUpdate(); } catch(e) { console.warn('Immediate overview refresh failed', e); }
+                            }
+                        } else {
+                            const error = await response.json();
+                            alert('Failed to update project status: ' + (error.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while updating the status: ' + error.message);
+                    }
+                });
+            });
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeProjectStatusUpdate);
+        } else {
+            initializeProjectStatusUpdate();
+        }
+    </script>
+
+    <script>
             function renderCalendar(containerId, labelId) {
                 const container = document.getElementById(containerId);
                 const label = document.getElementById(labelId);
@@ -468,6 +1006,5 @@
             } else {
                 renderCalendar('adminCalendar', 'adminCalendarMonth');
             }
-        })();
     </script>
 </x-app-layout>
