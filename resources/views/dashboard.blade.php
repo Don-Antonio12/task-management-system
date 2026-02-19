@@ -5,7 +5,7 @@
                 <h1 style="margin: 0; font-size: 2.5rem; font-weight: 700;">Welcome back, {{ Auth::user()->name }}!</h1>
                 <p style="color: #adb5bd; margin-top: 0.5rem;">{{ date('l, F j, Y') }}</p>
             </div>
-            @if(Auth::user()->role !== 'admin')
+            @if(!in_array(Auth::user()->role, ['admin', 'customer']))
             <a href="{{ route('tasks.create') }}" class="btn btn-primary" style="white-space: nowrap; width: 180px; height: 50px; font-size: 1.1rem;">
                 <i class="fas fa-plus"></i> New Task
             </a>
@@ -361,7 +361,7 @@
                                         <div style="font-size:0.85rem; color:#6c757d; margin-top:0.25rem;">{{ $p->percent_done }}% — {{ $p->done_count }} / {{ $p->tasks_count }} tasks done</div>
                                     </div>
                                     <div style="text-align:right; min-width:100px;">
-                                        <span class="badge bg-{{ $p->status === 'completed' ? 'success' : ($p->status === 'overdue' ? 'danger' : 'secondary') }} status-badge" data-project-id="{{ $p->id }}" data-current-status="{{ $p->status }}" style="cursor:pointer; transition:all 0.2s;" title="Click to change status">{{ ucfirst($p->status ?? 'active') }}</span>
+                                        <span class="badge bg-{{ $p->status === 'completed' ? 'success' : ($p->status === 'overdue' ? 'danger' : 'secondary') }} status-badge" style="transition:all 0.2s;">{{ ucfirst($p->status ?? 'active') }}</span>
                                     </div>
                                 </div>
                                 <div style="margin-top:0rem; background:#e9ecef; border-radius:6px; height:8px; overflow:hidden;">
@@ -494,65 +494,7 @@
 
     </div>
 
-    <!-- Status Update Modal -->
-    <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-edit" style="color: #1D809F; margin-right: 0.5rem;"></i>Update Project Status
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p style="color: #6c757d; margin-bottom: 1.5rem;">Select new status for this project:</p>
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <button class="btn btn-outline-primary status-option" data-status="active" style="text-align: left; padding: 0.75rem 1rem; border: 2px solid #dee2e6;">
-                            <i class="fas fa-circle" style="color: #1D809F; margin-right: 0.5rem;"></i>
-                            <strong>Active</strong>
-                            <span style="display: block; font-size: 0.85rem; color: #6c757d; margin-top: 0.25rem;">Project is currently in progress</span>
-                        </button>
-                        <button class="btn btn-outline-success status-option" data-status="completed" style="text-align: left; padding: 0.75rem 1rem; border: 2px solid #dee2e6;">
-                            <i class="fas fa-check-circle" style="color: #198754; margin-right: 0.5rem;"></i>
-                            <strong>Completed</strong>
-                            <span style="display: block; font-size: 0.85rem; color: #6c757d; margin-top: 0.25rem;">Project has been finished</span>
-                        </button>
-                        <button class="btn btn-outline-danger status-option" data-status="overdue" style="text-align: left; padding: 0.75rem 1rem; border: 2px solid #dee2e6;">
-                            <i class="fas fa-exclamation-circle" style="color: #dc3545; margin-right: 0.5rem;"></i>
-                            <strong>Overdue</strong>
-                            <span style="display: block; font-size: 0.85rem; color: #6c757d; margin-top: 0.25rem;">Project deadline has passed</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Success Modal -->
-    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header" style="border-bottom: 2px solid #d1e7dd; background: #f8f9fa;">
-                    <h5 class="modal-title">
-                        <i class="fas fa-check-circle" style="color: #198754; margin-right: 0.5rem;"></i>Success
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" style="text-align: center; padding: 2rem;">
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #198754;"></i>
-                    </div>
-                    <h5 style="color: #198754; margin-bottom: 0.5rem;">Project Status Updated</h5>
-                    <p style="color: #6c757d; margin-bottom: 0;">Your project status has been successfully updated!</p>
-                </div>
-                <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
-                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">
-                        <i class="fas fa-check"></i> Okay
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
     
     <script>
         // Chart.js initialization with data from dashboard
@@ -836,114 +778,7 @@
         }
     </script>
 
-    <script>
-        // Project Status Update Handler
-        function initializeProjectStatusUpdate() {
-            if (typeof bootstrap === 'undefined') {
-                console.error('Bootstrap not loaded');
-                return;
-            }
-
-            const statusModalEl = document.getElementById('statusModal');
-            if (!statusModalEl) {
-                console.error('Status modal not found');
-                return;
-            }
-
-            const statusModal = new bootstrap.Modal(statusModalEl);
-            let currentProjectId = null;
-
-            // Attach click listeners to status badges
-            const statusBadges = document.querySelectorAll('.status-badge');
-            statusBadges.forEach(badge => {
-                badge.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    currentProjectId = this.getAttribute('data-project-id');
-                    statusModal.show();
-                });
-            });
-
-            // Attach click listeners to status options
-            const statusOptions = document.querySelectorAll('.status-option');
-            statusOptions.forEach(btn => {
-                btn.addEventListener('click', async function(e) {
-                    e.preventDefault();
-                    const newStatus = this.getAttribute('data-status');
-                    
-                    if (!currentProjectId) {
-                        alert('No project selected');
-                        return;
-                    }
-
-                    try {
-                        const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                        if (!csrfToken) {
-                            alert('CSRF token not found');
-                            return;
-                        }
-
-                        const response = await fetch(`/projects/${currentProjectId}/update-status`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ status: newStatus })
-                        });
-
-                        if (response.ok) {
-                            const data = await response.json();
-                            statusModal.hide();
-                            
-                            // Update the badge
-                            const badge = document.querySelector(`[data-project-id="${currentProjectId}"]`);
-                            if (badge) {
-                                const statusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-                                badge.textContent = statusText;
-                                badge.setAttribute('data-current-status', newStatus);
-                                
-                                // Update badge color
-                                badge.className = 'badge status-badge';
-                                badge.setAttribute('style', 'cursor:pointer; transition:all 0.2s;');
-                                if (newStatus === 'completed') {
-                                    badge.classList.add('bg-success');
-                                } else if (newStatus === 'overdue') {
-                                    badge.classList.add('bg-danger');
-                                } else {
-                                    badge.classList.add('bg-secondary');
-                                }
-                                badge.setAttribute('title', 'Click to change status');
-                            }
-
-                            // Show success modal
-                            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-                            successModal.show();
-                            // Trigger immediate dashboard refresh so cards/charts update
-                            if (typeof fetchOverviewAndUpdate === 'function') {
-                                try { fetchOverviewAndUpdate(); } catch(e) { console.warn('Immediate overview refresh failed', e); }
-                            } else if (window.fetchOverviewAndUpdate) {
-                                try { window.fetchOverviewAndUpdate(); } catch(e) { console.warn('Immediate overview refresh failed', e); }
-                            }
-                        } else {
-                            const error = await response.json();
-                            alert('Failed to update project status: ' + (error.message || 'Unknown error'));
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('An error occurred while updating the status: ' + error.message);
-                    }
-                });
-            });
-        }
-
-        // Initialize when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeProjectStatusUpdate);
-        } else {
-            initializeProjectStatusUpdate();
-        }
-    </script>
+    
 
     <script>
             function renderCalendar(containerId, labelId) {

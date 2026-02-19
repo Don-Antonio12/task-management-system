@@ -21,8 +21,17 @@ class ProjectController extends Controller
     public function index()
     {
         $this->checkAdminAccess();
+        $user = Auth::user();
 
-        $projects = Project::with(['creator', 'tasks.assignedUser'])->orderBy('created_at', 'desc')->get();
+        // Admins are treated like customers for visibility: they see only their own projects
+        if ($user->role === 'customer' || $user->role === 'admin') {
+            $projects = Project::with(['creator', 'tasks.assignedUser'])
+                ->where('created_by', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $projects = Project::with(['creator', 'tasks.assignedUser'])->orderBy('created_at', 'desc')->get();
+        }
         return view('projects.index', compact('projects'));
     }
 
@@ -177,9 +186,16 @@ class ProjectController extends Controller
 
     public function show(Request $request, Project $project)
     {
-        // Allow admin/customer to view any project; developers can view only if they have tasks in the project
+        // Admins can view any project.
+        // Customers can view only projects they created.
+        // Developers can view only if they have tasks in the project.
         $user = Auth::user();
-        if (!$user->isAdminOrCustomer()) {
+        if ($user->role === 'admin' || $user->role === 'customer') {
+            // Admins and customers can view only projects they created
+            if ($project->created_by !== $user->id) {
+                abort(403);
+            }
+        } else {
             $has = $project->tasks()->where('assigned_to', $user->id)->exists();
             if (! $has) {
                 abort(403);
@@ -196,9 +212,7 @@ class ProjectController extends Controller
         } else {
             $category = null;
         }
-        if (!$user->isAdminOrCustomer()) {
-            $tasksQuery->where('assigned_to', $user->id);
-        }
+        // Developers who are allowed to view the project can see all tasks in it.
         $tasks = $tasksQuery->get();
         $statuses = ['todo', 'in_progress', 'in_review', 'done'];
         $grouped = collect($tasks)->groupBy('status');
