@@ -62,8 +62,8 @@
 
 <style>
     .navbar-profile-photo {
-        width: 36px;
-        height: 36px;
+        width: 70px;
+        height: 70px;
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid rgba(255,255,255,0.5);

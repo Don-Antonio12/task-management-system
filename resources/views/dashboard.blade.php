@@ -225,6 +225,28 @@
             position: relative;
         }
 
+        /* Compact right column: reduce whitespace and let profile occupy space */
+        .col-lg-4 {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .col-lg-4 .enhanced-card {
+            padding: 1rem;
+        }
+
+        .profile-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .user-info-box {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
         .chart-wrapper {
             position: relative;
             height: 320px;
@@ -419,9 +441,8 @@
                 <div class="calendar-grid" id="adminCalendar"></div>
             </div>
 
-            <div style="height: 1.5rem;"></div>
-
-            <div class="enhanced-card">
+            
+            <div class="enhanced-card profile-card">
                 <h5><i class="fas fa-user-circle"></i> Profile</h5>
                 <div class="user-info-box">
                     <p><strong>Name</strong></p>

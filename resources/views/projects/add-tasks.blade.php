@@ -40,11 +40,53 @@
 
     <div class="row mt-4">
         <div class="col-lg-10">
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <!-- Success modal (shows after creating a project) -->
+            <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="fas fa-check-circle text-success me-2"></i> Success</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-0">{{ session('success') }}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" id="proceedAddTaskBtn" class="btn btn-primary">Proceed to Add Tasks</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            @if(session('success'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        try {
+                            var modalEl = document.getElementById('successModal');
+                            if (modalEl) {
+                                var bsModal = new bootstrap.Modal(modalEl);
+                                bsModal.show();
+
+                                // Proceed button: hide modal and scroll to task form
+                                var proceedBtn = document.getElementById('proceedAddTaskBtn');
+                                if (proceedBtn) {
+                                    proceedBtn.addEventListener('click', function() {
+                                        try { bsModal.hide(); } catch (err) { /* ignore */ }
+                                        var target = document.getElementById('task-rows');
+                                        if (target) {
+                                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                            var firstInput = target.querySelector('input, textarea, select');
+                                            if (firstInput) firstInput.focus();
+                                        }
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Could not show success modal:', e);
+                        }
+                    });
+                </script>
             @endif
             @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">

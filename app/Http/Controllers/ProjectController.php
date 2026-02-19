@@ -212,7 +212,13 @@ class ProjectController extends Controller
         } else {
             $category = null;
         }
-        // Developers who are allowed to view the project can see all tasks in it.
+
+        // If the current user is a developer (not admin/customer), restrict tasks to only those assigned to them
+        if (! in_array($user->role, ['admin', 'customer'])) {
+            $tasksQuery->where('assigned_to', $user->id);
+        }
+
+        // Fetch tasks (admins/customers may see all tasks or filtered by category; developers see only their tasks)
         $tasks = $tasksQuery->get();
         $statuses = ['todo', 'in_progress', 'in_review', 'done'];
         $grouped = collect($tasks)->groupBy('status');

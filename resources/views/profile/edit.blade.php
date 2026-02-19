@@ -6,11 +6,11 @@
     <style>
         .profile-section {
             background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            margin-bottom: 1rem;
         }
 
         .profile-section h3 {
@@ -122,7 +122,7 @@
         }
     </style>
 
-    <div style="max-width: 900px; margin-top: 2rem;">
+    <div style="max-width: 1100px; width: 100%; margin: 1rem auto; padding: 0 1rem;">
         @if (session('status') === 'profile-updated')
             <div class="success-message">
                 <i class="fas fa-check-circle"></i> Profile updated successfully!

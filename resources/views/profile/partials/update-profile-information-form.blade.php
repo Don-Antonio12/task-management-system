@@ -79,17 +79,17 @@
 <style>
     .profile-section {
         background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        margin-bottom: 1.5rem;
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        margin-bottom: 0.75rem;
     }
 
     .section-header {
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid rgba(29, 128, 159, 0.2);
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 2px solid rgba(29, 128, 159, 0.12);
     }
 
     .section-header h3 {
@@ -109,20 +109,20 @@
     }
 
     .form-content {
-        margin-top: 1.5rem;
+        margin-top: 0.75rem;
     }
 
     .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
     .form-label {
         font-weight: 600;
         color: #1D809F;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.5rem;
+        letter-spacing: 0.4px;
+        margin-bottom: 0.4rem;
         display: block;
     }
 
@@ -188,10 +188,10 @@
     .form-actions {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.04);
     }
 
     .btn {
@@ -225,10 +225,10 @@
 
     .profile-photo-group { margin-bottom: 1.5rem; }
     .profile-photo-wrap { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-    .profile-photo-preview { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .profile-photo-preview { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .profile-photo-img { width: 100%; height: 100%; object-fit: cover; }
-    .profile-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #1D809F; }
-    .profile-photo-input { max-width: 280px; }
+    .profile-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #1D809F; }
+    .profile-photo-input { max-width: 220px; }
 </style>
 
 <script>
